@@ -56,7 +56,7 @@ def generate_launch_description():
     )
 
     fc_call_node = Node(
-        package='gesture_legs_control',
+        package='gesture_interaction',
         executable='function_call_control',
         output='screen',
         arguments=['--ros-args', '--log-level', 'info'],
