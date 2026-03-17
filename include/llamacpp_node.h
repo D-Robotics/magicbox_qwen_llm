@@ -153,7 +153,7 @@ class LlamaCppNode : public DnnNode {
   
   std::thread thread_;
   std::atomic<bool> running_;
-
+  std::string language_type_ = "zh";
   // 用于回灌的本地图片信息
   std::string image_file_ = "config/image2.jpg";
 

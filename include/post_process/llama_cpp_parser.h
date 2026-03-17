@@ -33,7 +33,7 @@ using hobot::dnn_node::DNNTensor;
 
 class LlamaCppParser {
  public:
-  LlamaCppParser(const std::string& model_name, const std::string& system_prompt, const int n_threads);
+  LlamaCppParser(const std::string& model_name, const std::string& system_prompt, const int n_threads, const std::string &language_type);
   ~LlamaCppParser();
 
   int32_t Init(const std::string &system_prompt);
@@ -50,7 +50,7 @@ class LlamaCppParser {
   common_params params;
   struct llama_model * model_ = nullptr;
   struct llava_context * ctx_llava_ = nullptr;
-
+  std::string language_type_ = "zh"; 
 };
 
 #endif  // LLAMA_OUTPUT_PARSER_H_

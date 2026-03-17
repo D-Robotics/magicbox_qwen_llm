@@ -173,6 +173,17 @@ bool isChineseOrDigit(const std::string& str, size_t i) {
   return (c1 >= 0xE4 && c1 <= 0xE9);
 }
 
+bool isEnglishOrDigit(const std::string& str, size_t i){
+  for (char c : str) {
+      if (!( (std::isalpha(static_cast<unsigned char>(c)) && c < 128)  // 英文字符
+            || std::isdigit(static_cast<unsigned char>(c))                // 数字
+            || std::isspace(static_cast<unsigned char>(c)) )) {           // 空格
+          return false;
+      }
+  }
+  return true;
+}
+
 // 判断是否是中文逗号或句号（UTF-8编码：，=E3 80 81，。=E3 80 82）
 bool isChinesePunctuation(const std::string& str, size_t i) {
   if (i + 2 >= str.size()) return false;
@@ -180,79 +191,139 @@ bool isChinesePunctuation(const std::string& str, size_t i) {
           ((str[i + 2] == char(0x81) || str[i + 2] == char(0x82)) || (str[i + 2] == char(0x8A) || str[i + 2] == char(0x8B))))) ||  (str[i] == 0xE2 && str[i+1] == 0x80 && (str[i+2] == 0x9C || str[i+2] == 0x9D));
 }
 
-std::string filterChineseAndPunctuation(const std::string& input, bool& hasChineseOrDigit, bool& hasPunctuation) {
+bool isEnglishPunctuation(const std::string& str, size_t i) {
+  for (char c : str) {
+      return c == '.' || c == ',';
+  }
+}
+
+std::string filterTextAndPunctuation(const std::string& input, bool& hasTextOrDigit, bool& hasPunctuation, const std::string &language_type) {
   std::string result;
   static std::string last_result = "";
-  hasChineseOrDigit = false;
+  hasTextOrDigit = false;
   hasPunctuation = false;
   if (last_result != ""){
     result = result + last_result;
     last_result = "";
   }
-  for (size_t i = 0; i < input.size(); ) {
-      //判断标点符号在文字前还是文字后，若在文字前，则将文字并到下一次输出
-      if (hasPunctuation == true){
-        if (isChineseOrDigit(input, i)) {
-            last_result += input.substr(i, 3);
-            i += 3;
-        } else {
-          if (isChinesePunctuation(input, i)) {
-            last_result += input.substr(i, 3);
-            i += 3;
+  if (language_type == "en"){
+    for (size_t i = 0; i < input.size(); ) {
+        //判断标点符号在文字前还是文字后，若在文字前，则将文字并到下一次输出
+        if (hasPunctuation == true){
+          if (isEnglishOrDigit(input, i)) {
+              last_result += input.substr(i, 1);
+              i++;
           } else {
-            // 英文字符：跳过
-            unsigned char c = input[i];
-            if (c < 0x80) {
-                if (std::isdigit(c)) {
-                    last_result += c;
-                }
-                ++i;
-            } else if ((c & 0xE0) == 0xC0) {
-                i += 2; // 2-byte UTF-8
-            } else if ((c & 0xF0) == 0xE0) {
-                i += 3; // 3-byte UTF-8
-            } else if ((c & 0xF8) == 0xF0) {
-                i += 4; // 4-byte UTF-8
+            if (isEnglishPunctuation(input, i)) {
+              last_result += input.substr(i, 1);
+              i++;
             } else {
-                ++i;
+              // 其他字符：跳过
+              unsigned char c = input[i];
+              if ((c & 0xE0) == 0xC0) {
+                  i += 2; // 2-byte UTF-8
+              } else if ((c & 0xF0) == 0xE0) {
+                  i += 3; // 3-byte UTF-8
+              } else if ((c & 0xF8) == 0xF0) {
+                  i += 4; // 4-byte UTF-8
+              } else {
+                  ++i;
+              }
+            }
+          }
+        } else {
+          if (isEnglishOrDigit(input, i)) {
+              hasTextOrDigit = true;
+              result += input.substr(i, 1);
+              i++;
+          } else {
+            hasPunctuation = true;
+            if (isEnglishPunctuation(input, i)) {
+              result += input.substr(i, 1);
+              i++;
+            } else {
+              // 其他字符：跳过
+              unsigned char c = input[i];
+              if ((c & 0xE0) == 0xC0) {
+                  i += 2; // 2-byte UTF-8
+              } else if ((c & 0xF0) == 0xE0) {
+                  i += 3; // 3-byte UTF-8
+              } else if ((c & 0xF8) == 0xF0) {
+                  i += 4; // 4-byte UTF-8
+              } else {
+                  ++i;
+              }
             }
           }
         }
-      } else{
-        if (isChineseOrDigit(input, i)) {
-            hasChineseOrDigit = true;
-            result += input.substr(i, 3);
-            i += 3;
-        } else {
-          hasPunctuation = true;
-          if (isChinesePunctuation(input, i)) {
-            result += input.substr(i, 3);
-            i += 3;
+    }  
+  } else {
+    for (size_t i = 0; i < input.size(); ) {
+        //判断标点符号在文字前还是文字后，若在文字前，则将文字并到下一次输出
+        if (hasPunctuation == true){
+          if (isChineseOrDigit(input, i)) {
+              last_result += input.substr(i, 3);
+              i += 3;
           } else {
-            // 英文字符：跳过
-            unsigned char c = input[i];
-            if (c < 0x80) {
-                if (std::isdigit(c)) {
-                    result += c;
-                }
-                ++i;
-            } else if ((c & 0xE0) == 0xC0) {
-                i += 2; // 2-byte UTF-8
-            } else if ((c & 0xF0) == 0xE0) {
-                i += 3; // 3-byte UTF-8
-            } else if ((c & 0xF8) == 0xF0) {
-                i += 4; // 4-byte UTF-8
+            if (isChinesePunctuation(input, i)) {
+              last_result += input.substr(i, 3);
+              i += 3;
             } else {
-                ++i;
+              // 英文字符：跳过
+              unsigned char c = input[i];
+              if (c < 0x80) {
+                  if (std::isdigit(c)) {
+                      last_result += c;
+                  }
+                  ++i;
+              } else if ((c & 0xE0) == 0xC0) {
+                  i += 2; // 2-byte UTF-8
+              } else if ((c & 0xF0) == 0xE0) {
+                  i += 3; // 3-byte UTF-8
+              } else if ((c & 0xF8) == 0xF0) {
+                  i += 4; // 4-byte UTF-8
+              } else {
+                  ++i;
+              }
+            }
+          }
+        } else {
+          if (isChineseOrDigit(input, i)) {
+              hasTextOrDigit = true;
+              result += input.substr(i, 3);
+              i += 3;
+          } else {
+            hasPunctuation = true;
+            if (isChinesePunctuation(input, i)) {
+              result += input.substr(i, 3);
+              i += 3;
+            } else {
+              // 英文字符：跳过
+              unsigned char c = input[i];
+              if (c < 0x80) {
+                  if (std::isdigit(c)) {
+                      result += c;
+                  }
+                  ++i;
+              } else if ((c & 0xE0) == 0xC0) {
+                  i += 2; // 2-byte UTF-8
+              } else if ((c & 0xF0) == 0xE0) {
+                  i += 3; // 3-byte UTF-8
+              } else if ((c & 0xF8) == 0xF0) {
+                  i += 4; // 4-byte UTF-8
+              } else {
+                  ++i;
+              }
             }
           }
         }
-      }
+    }
   }
+
   return result;
 }
 
-void CLI::process_prompt(struct llava_context * ctx_llava, struct llava_image_embed * image_embed, common_params * params, const std::string & prompt, std::string &response, rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher) {
+void CLI::process_prompt(struct llava_context * ctx_llava, struct llava_image_embed * image_embed, common_params * params, const std::string & prompt, std::string &response, rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher, const std::string language_type) {
   int n_past = 0;
   int cur_pos_id = 0;
 
@@ -291,9 +362,9 @@ void CLI::process_prompt(struct llava_context * ctx_llava, struct llava_image_em
       if (strstr(response.c_str(), "<|im_start|>")) break; // Yi-34B llava-1.6
       if (strstr(response.c_str(), "USER:")) break; // mistral llava-1.6
 
-      bool hasChineseOrDigit = false;
+      bool hasTextOrDigit = false;
       bool hasPunctuation = false;
-      std::string filtered = filterChineseAndPunctuation(tmp, hasChineseOrDigit, hasPunctuation);
+      std::string filtered = filterTextAndPunctuation(tmp, hasTextOrDigit, hasPunctuation, language_type);
   
       sub_string += filtered;
       if (hasPunctuation) {

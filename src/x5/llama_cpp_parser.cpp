@@ -14,12 +14,12 @@
 
 #include "include/post_process/llama_cpp_parser.h"
 
-LlamaCppParser::LlamaCppParser(const std::string& model_name, const std::string& system_prompt, const int n_threads) {
+LlamaCppParser::LlamaCppParser(const std::string& model_name, const std::string& system_prompt, const int n_threads, const std::string &language_type) {
   common_init();
   params.model = model_name;
   params.cpuparams.n_threads = n_threads;
   params.sampling.temp = 0.5;
-
+  language_type_ = language_type;
   model_ = CLI::llava_init(&params);
   if (model_ == NULL) {
       fprintf(stderr, "%s: error: failed to init llava model\n", __func__);
@@ -76,7 +76,7 @@ int32_t LlamaCppParser::Parse(
   }
 
   // process the prompt
-  CLI::process_prompt(ctx_llava_, image_embed, &params, params.prompt, result, publisher);
+  CLI::process_prompt(ctx_llava_, image_embed, &params, params.prompt, result, publisher, language_type_);
 
   llama_perf_context_print(ctx_llava_->ctx_llama);
   free(image_embed);

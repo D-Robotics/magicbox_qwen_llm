@@ -77,9 +77,12 @@ static void print_usage(int argc, char ** argv) {
   LOG("\n");
 }
 
-bool isChinese(const std::string& str, size_t i);
-bool isChinesePunctuation(const std::string& str, size_t i);
-std::string filterChineseAndPunctuation(const std::string& input, bool& hasChinese, bool& hasPunctuation);
+// bool isChineseOrDigit(const std::string& str, size_t i);
+// bool isChinesePunctuation(const std::string& str, size_t i);
+
+// bool isEnglishOrDigit(const std::string& str, size_t i);
+
+std::string filterTextAndPunctuation(const std::string& input, bool& hasTextOrDigit, bool& hasPunctuation, const std::string &language_type);
 
 
 class CLI {
@@ -93,7 +96,7 @@ class CLI {
                              struct llama_context * ctx_llama,
                              int * n_past, int * st_pos_id);
   static void process_system_prompt(struct llava_context * ctx_llava, common_params * params, const std::string & sprompt);
-  static void process_prompt(struct llava_context * ctx_llava, struct llava_image_embed * image_embed, common_params * params, const std::string & prompt, std::string &response, rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher);
+  static void process_prompt(struct llava_context * ctx_llava, struct llava_image_embed * image_embed, common_params * params, const std::string & prompt, std::string &response, rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher, const std::string language_type);
   static struct llama_model * llava_init(common_params * params);
   static struct llava_context * llava_init_context(common_params * params, llama_model * model);
   static void llava_free(struct llava_context * ctx_llava);

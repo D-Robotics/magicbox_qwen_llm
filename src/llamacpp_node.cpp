@@ -97,6 +97,8 @@ LlamaCppNode::LlamaCppNode(const std::string &node_name,
   this->declare_parameter<std::string>("system_prompt_file_", system_prompt_file_);
   this->declare_parameter<std::string>("system_prompt_function_call_file", system_prompt_function_call_file_);
   this->declare_parameter<bool>("wait_for_audio", wait_for_audio_);
+  this->declare_parameter<std::string>("language_type", language_type_);
+
 
   this->get_parameter<int>("feed_type", feed_type_);
   this->get_parameter<std::string>("image", image_file_);
@@ -115,6 +117,12 @@ LlamaCppNode::LlamaCppNode(const std::string &node_name,
   this->get_parameter<std::string>("system_prompt_file_", system_prompt_file_);
   this->get_parameter<std::string>("system_prompt_function_call_file", system_prompt_function_call_file_);
   this->get_parameter<bool>("wait_for_audio", wait_for_audio_);
+  this->get_parameter<std::string>("language_type", language_type_);
+
+  if (language_type_ != "zh" && language_type_ != "en"){
+    language_type_ = "zh";
+    RCLCPP_WARN(rclcpp::get_logger("audio_io"), "Language_type setting error, you set it to %s, only supports zh or en. The default setting is zh", language_type_.c_str());
+  }
 
   std::string pkg_path = ament_index_cpp::get_package_prefix(pkg_name_);
   std::string config_path = pkg_path + "/share/" + pkg_name_ + "/config/";
@@ -165,7 +173,7 @@ LlamaCppNode::LlamaCppNode(const std::string &node_name,
       }
     }
 
-    parser_ = std::make_shared<LlamaCppParser>(llm_model_path_, system_prompt_file_, llm_threads_);
+    parser_ = std::make_shared<LlamaCppParser>(llm_model_path_, system_prompt_file_, llm_threads_, language_type_);
   }
   
   // 创建AI消息的发布者
@@ -1209,9 +1217,9 @@ int LlamaCppNode::Chat() {
                   continue;
                 }
               }
-              bool hasChineseOrDigit = false;
+              bool hasTextOrDigit = false;
               bool hasPunctuation = false;
-              std::string filtered = filterChineseAndPunctuation(token_str, hasChineseOrDigit, hasPunctuation);
+              std::string filtered = filterTextAndPunctuation(token_str, hasTextOrDigit, hasPunctuation, language_type_);
               sub_string += filtered;
               if (hasPunctuation) {
                 if (sub_string == "") continue;
@@ -1326,11 +1334,10 @@ int LlamaCppNode::Chat() {
                       output_msg_publisher_->publish(std::move(pub_string));
                       sub_string = "";
                     }
-                    
                     for(int i = 0; i < 2; i++){
                       std_msgs::msg::String::UniquePtr pub_string(
-                          new std_msgs::msg::String());  
-                      pub_string->data = "end";
+                          new std_msgs::msg::String());
+                      pub_string->data = "<end>";
                       output_msg_publisher_->publish(std::move(pub_string));
                     }   
                     n_remain = params.n_predict;
@@ -1358,7 +1365,7 @@ int LlamaCppNode::Chat() {
                 for(int i = 0; i < 2; i++){
                   std_msgs::msg::String::UniquePtr pub_end(
                     new std_msgs::msg::String());
-                  pub_end->data = "end";
+                  pub_end->data = "<end>";
                   output_msg_publisher_->publish(std::move(pub_end));
                 }
                 init_status = true;
