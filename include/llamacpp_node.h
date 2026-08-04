@@ -118,7 +118,7 @@ class LlamaCppNode : public DnnNode {
   // 用于解析的配置文件，以及解析后的数据
   std::string model_file_name_ = "vit_model_int16_v2.bin";
   std::string model_name_ = "";
-  std::string llm_model_path_ = "/dev/shm/qwen2.5-1.5b-instruct-q5_k_m.gguf";
+  std::string llm_model_path_ = "/userdata/magicbox/config/qwen2.5-1.5b-instruct-q5_k_m.gguf";
 
   // 加载模型后，查询出模型输入分辨率
   int model_input_width_ = 448;

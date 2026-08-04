@@ -45,7 +45,7 @@ def generate_launch_description():
         executable='qwen_llm',
         output='screen',
         parameters=[
-            {"llm_model_path": "/dev/shm/qwen2.5-1.5b-instruct-q5_k_m.gguf"},
+            {"llm_model_path": "/userdata/magicbox/config/qwen2.5-1.5b-instruct-q5_k_m.gguf"},
             {"cute_words": "你好，请问有什么能够帮助您的？"},
             {"system_prompt_file_": PathJoinSubstitution([config_file, "system_prompt.txt"])},
             {"system_prompt_function_call_file": PathJoinSubstitution([config_file, "system_prompt_function_call.txt"])},

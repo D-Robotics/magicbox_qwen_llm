@@ -16,7 +16,7 @@
 
 LlamaCppParser::LlamaCppParser(const std::string& model_name, const std::string& system_prompt, const int n_threads) {
   common_init();
-  params.model = model_name;
+  params.model.path = model_name;
   params.cpuparams.n_threads = n_threads;
   params.sampling.temp = 0.5;
 

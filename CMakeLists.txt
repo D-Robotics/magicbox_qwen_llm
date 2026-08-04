@@ -51,25 +51,9 @@ if (${SHARED_MEM})
   add_definitions(-DSHARED_MEM_ENABLED)
 endif ()
 
-# x5
+message("build platform X5")
+add_definitions(-DPLATFORM_X5)
 set(PREFIX_PATH x5)
-set(SYS_ROOT ${CMAKE_SYSROOT})
-
-if(PLATFORM_X5)
-  message("build platform X5")
-  add_definitions(-DPLATFORM_X5)
-  set(PREFIX_PATH x5)
-elseif(PLATFORM_S100)
-  message("build platform S100")
-  add_definitions(-DPLATFORM_S100)
-  set(PREFIX_PATH s100)
-else()
-  if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
-    message("invalid platform, build platform X5 default")
-    add_definitions(-PLATFORM_X5)
-    set(PREFIX_PATH x5)
-  endif()
-endif()
 
 message("PREFIX_PATH is " ${PREFIX_PATH})
 message("SYS_ROOT is " ${SYS_ROOT})
@@ -105,7 +89,7 @@ add_subdirectory(llama.cpp)
 add_executable(${PROJECT_NAME}
   src/main.cpp
   src/cli.cpp
-  src/llamacpp_node.cpp
+  src/llamacpp_node_new.cpp
   src/${PREFIX_PATH}/image_utils.cpp
   src/${PREFIX_PATH}/llama_cpp_parser.cpp
 )
@@ -116,13 +100,13 @@ add_executable(llama_warmup
 
 
 target_link_libraries(${PROJECT_NAME} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/build/common/libcommon.a 
-    ggml 
+    ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/build/common/libllama-common-base.a
     llama
+    llama-common
     ${CMAKE_THREAD_LIBS_INIT})
 
 target_link_libraries(llama_warmup 
-    ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/build/common/libcommon.a 
+    ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/build/common/libllama-common-base.a
     ggml 
     llama
     ${CMAKE_THREAD_LIBS_INIT})
@@ -135,14 +119,13 @@ ament_target_dependencies(
   ai_msgs
   cv_bridge
   std_srvs
+  hbm_img_msgs
 )
 
-if (${SHARED_MEM})
-  ament_target_dependencies(
-    ${PROJECT_NAME}
-    hbm_img_msgs
-  )
-endif ()
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    BUILD_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/build/bin"
+    INSTALL_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/build/bin"
+)
 
 # Install executables
 install(

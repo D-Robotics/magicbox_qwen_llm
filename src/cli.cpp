@@ -325,13 +325,13 @@ struct llama_model * CLI::llava_init(common_params * params) {
 
   llama_model_params model_params = common_model_params_to_llama(*params);
 
-  llama_model * model = llama_model_load_from_file(params->model.c_str(), model_params);
+  llama_model * model = llama_model_load_from_file(params->model.path.c_str(), model_params);
 
   return model;
 }
 
 struct llava_context * CLI::llava_init_context(common_params * params, llama_model * model) {
-  const char * model_file_name = params->mmproj.c_str();
+  const char * model_file_name = params->mmproj.path.c_str();
 
   auto prompt = params->prompt;
   if (prompt.empty()) {
