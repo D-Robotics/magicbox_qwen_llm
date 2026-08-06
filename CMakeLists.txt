@@ -71,7 +71,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/common/
   ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/include/
   ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/ggml/include/
-  # ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/spm-headers/
+  ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/vendor/
   ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/examples/llava/
 )
 

@@ -33,6 +33,9 @@ def generate_launch_description():
     wait_for_audio_call_arg = DeclareLaunchArgument(
         "wait_for_audio", default_value="True"
     )
+    llm_model_path_arg = DeclareLaunchArgument(
+        "llm_model_path", default_value="/userdata/magicbox/config/qwen2.5-1.5b-instruct-q5_k_m.gguf"
+    )
     pkg_path = FindPackageShare("qwen_llm")
 
     config_file = PathJoinSubstitution([
@@ -45,7 +48,7 @@ def generate_launch_description():
         executable='qwen_llm',
         output='screen',
         parameters=[
-            {"llm_model_path": "/userdata/magicbox/config/qwen2.5-1.5b-instruct-q5_k_m.gguf"},
+            {"llm_model_path": LaunchConfiguration('llm_model_path')},
             {"cute_words": "你好，请问有什么能够帮助您的？"},
             {"system_prompt_file_": PathJoinSubstitution([config_file, "system_prompt.txt"])},
             {"system_prompt_function_call_file": PathJoinSubstitution([config_file, "system_prompt_function_call.txt"])},
@@ -69,6 +72,7 @@ def generate_launch_description():
         ),
         enable_function_call_arg,
         wait_for_audio_call_arg,
+        llm_model_path_arg,
         fc_call_node,
         qwen_llm_node
     ])

@@ -53,7 +53,7 @@ hbm_img_msgs为自定义的图片消息格式, 用于shared mem场景下的图�
 - 链接第三方仓库 [llama.cpp](https://github.com/ggml-org/llama.cpp):
  
 ```shell
-git clone https://github.com/ggml-org/llama.cpp -b b4749
+git clone https://github.com/ggml-org/llama.cpp -b b8990
 cmake -B build
 cmake --build build --config Release
 # 链接llama.cpp到工程目录下
